@@ -29,13 +29,24 @@ const CampaignDetails = () => {
   }, [contract, address])
 
   const handleDonate = async () => {
-    setIsLoading(true);
-
-    await donate(state.pId, amount); 
-
-    navigate('/')
-    setIsLoading(false);
-  }
+    const remainingAmount = parseFloat(state.target) - parseFloat(state.amountCollected);
+  
+    if (parseFloat(amount) > remainingAmount) {
+      alert(`Donation amount exceeds the remaining goal. Please enter an amount less than or equal to ${remainingAmount.toFixed(4)} ETH.`);
+      return;
+    }
+  
+    try {
+      setIsLoading(true);
+      await donate(state.pId, amount); 
+      navigate('/');
+    } catch (error) {
+      console.error("Donation failed", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
 
   return (
     <div>

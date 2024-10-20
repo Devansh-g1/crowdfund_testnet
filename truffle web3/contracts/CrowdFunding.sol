@@ -1,204 +1,118 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-contract EnergyTrading {
-    struct EnergyListing {
+contract CrowdFunding {
+    struct DonationDetail {
+        uint256 campaignId;
+        uint256 amount;
+        uint256 timestamp;
+    }
+
+    struct Campaign {
         address owner;
-        string name;               // Company Name
-        uint256 costPerUnit;       // Cost per Energy Unit in Wei
-        uint256 energyAmount;      // Total Energy Available (kWh)
-        string fuelType;           // Type of Fuel
-        string description;        // Description of the Energy Offering
-        string image;              // URL to Company Logo/Image
-        uint256 amountSold;        // Total Energy Sold (kWh)
-        uint256 createdAt;         // Timestamp of Listing Creation
+        string title;
+        string description;
+        uint256 target;
+        uint256 deadline;
+        uint256 amountCollected;
+        string image;
+        address[] donators;
+        uint256[] donations;
+        uint256[] timestamps;
     }
 
-    struct Purchase {
-        address buyer;
-        uint256 amount;
-        uint256 timestamp;
-    }
+    // Track all donations for each user
+    mapping(address => DonationDetail[]) public userDonations;
 
-    // Struct to track purchases by user
-    struct PurchaseDetail {
-        uint256 listingId;
-        uint256 amount;
-        uint256 timestamp;
-    }
+    mapping(uint256 => Campaign) public campaigns;
+    uint256 public numberOfCampaigns = 0;
 
-    mapping(uint256 => EnergyListing) public energyListings;
-    mapping(uint256 => Purchase[]) public purchaseHistory; // Mapping to store purchase history per listing
-    mapping(address => PurchaseDetail[]) public userPurchases; // Mapping to store purchases by each user
-    uint256 public numberOfListings = 0;
-
-    // Events
-    event EnergyListingCreated(
-        uint256 indexed id,
-        address indexed owner,
-        string name,
-        uint256 costPerUnit,
-        uint256 energyAmount,
-        string fuelType,
-        string description,
-        string image,
-        uint256 createdAt
-    );
-
-    event EnergyPurchased(
-        uint256 indexed id,
-        address indexed buyer,
-        uint256 amount,
-        uint256 totalCost,
-        uint256 timestamp
-    );
-
-    /**
-     * @dev Creates a new energy listing.
-     */
-    function createEnergyListing(
+    // Create a new campaign
+    function createCampaign(
         address _owner,
-        string memory _name,
-        uint256 _costPerUnit,
-        uint256 _energyAmount,
-        string memory _fuelType,
+        string memory _title,
         string memory _description,
+        uint256 _target,
+        uint256 _deadline,
         string memory _image
     ) public returns (uint256) {
-        require(_costPerUnit > 0, "Cost per unit must be greater than zero.");
-        require(_energyAmount > 0, "Energy amount must be greater than zero.");
-        require(bytes(_name).length > 0, "Company name is required.");
-        require(bytes(_fuelType).length > 0, "Fuel type is required.");
-        require(bytes(_image).length > 0, "Image URL is required.");
+        require(_deadline > block.timestamp, "The deadline should be a date in the future.");
 
-        EnergyListing storage listing = energyListings[numberOfListings];
-        listing.owner = _owner;
-        listing.name = _name;
-        listing.costPerUnit = _costPerUnit;
-        listing.energyAmount = _energyAmount;
-        listing.fuelType = _fuelType;
-        listing.description = _description;
-        listing.image = _image;
-        listing.amountSold = 0;
-        listing.createdAt = block.timestamp;
+        // Initialize the campaign with proper array allocations
+        campaigns[numberOfCampaigns] = Campaign({
+            owner: _owner,
+            title: _title,
+            description: _description,
+            target: _target,
+            deadline: _deadline,
+            amountCollected: 0,
+            image: _image,
+            donators: new address[](0), // Initialize as an empty array
+            donations: new uint256[](0), // Initialize as an empty array
+            timestamps: new uint256[](0)  // Initialize as an empty array
+        });
 
-        emit EnergyListingCreated(
-            numberOfListings,
-            _owner,
-            _name,
-            _costPerUnit,
-            _energyAmount,
-            _fuelType,
-            _description,
-            _image,
-            block.timestamp
-        );
-
-        numberOfListings++;
-        return numberOfListings - 1;
+        numberOfCampaigns++;
+        return numberOfCampaigns - 1;
     }
 
-    /**
-     * @dev Allows users to purchase energy units from a listing.
-     */
-    function buyEnergy(uint256 _id, uint256 _amount) public payable {
-        EnergyListing storage listing = energyListings[_id];
-        require(listing.energyAmount > 0, "Energy listing does not exist.");
-        require(_amount > 0, "Purchase amount must be greater than zero.");
-        require(
-            listing.energyAmount - listing.amountSold >= _amount,
-            "Not enough energy available."
-        );
+    // Donate to a campaign
+    function donateToCampaign(uint256 _id) public payable {
+        uint256 amount = msg.value;
+        Campaign storage campaign = campaigns[_id];
 
-        uint256 totalCost = listing.costPerUnit * _amount; // Total cost in Wei
-        require(msg.value == totalCost, "Incorrect ETH amount sent.");
+        require(block.timestamp < campaign.deadline, "Campaign has ended.");
 
-        // Effects
-        listing.amountSold += _amount;
+        // Record donation details in the campaign
+        campaign.donators.push(msg.sender);
+        campaign.donations.push(amount);
+        campaign.timestamps.push(block.timestamp);
 
-        // Record the purchase with timestamp
-        Purchase memory newPurchase = Purchase({
-            buyer: msg.sender,
-            amount: _amount,
-            timestamp: block.timestamp
-        });
-        purchaseHistory[_id].push(newPurchase);
-
-        // Track the user's purchase
-        userPurchases[msg.sender].push(PurchaseDetail({
-            listingId: _id,
-            amount: _amount,
+        // Track the user's donation
+        userDonations[msg.sender].push(DonationDetail({
+            campaignId: _id,
+            amount: amount,
             timestamp: block.timestamp
         }));
 
-        // Interactions
-        (bool sent, ) = payable(listing.owner).call{value: msg.value}("");
-        require(sent, "Failed to send Ether to the owner.");
+        // Transfer the donation amount to the campaign owner
+        (bool sent, ) = payable(campaign.owner).call{value: amount}("");
+        require(sent, "Failed to transfer donation.");
 
-        emit EnergyPurchased(_id, msg.sender, _amount, totalCost, block.timestamp);
+        campaign.amountCollected += amount;
     }
 
-    /**
-     * @dev Retrieves all energy listings.
-     */
-    function getEnergyListings() public view returns (EnergyListing[] memory) {
-        EnergyListing[] memory allListings = new EnergyListing[](numberOfListings);
+    // Retrieve all donations made by a user across campaigns
+    function getUserDonations(address _user) 
+        public 
+        view 
+        returns (DonationDetail[] memory) 
+    {
+        return userDonations[_user];
+    }
 
-        for (uint256 i = 0; i < numberOfListings; i++) {
-            EnergyListing storage item = energyListings[i];
-            allListings[i] = item;
+    // Retrieve campaigns
+    function getCampaigns() public view returns (Campaign[] memory) {
+        Campaign[] memory allCampaigns = new Campaign[](numberOfCampaigns);
+
+        for (uint256 i = 0; i < numberOfCampaigns; i++) {
+            allCampaigns[i] = campaigns[i];
         }
 
-        return allListings;
+        return allCampaigns;
     }
 
-    /**
-     * @dev Retrieves a specific energy listing by ID.
-     */
-    function getEnergyListing(uint256 _id) public view returns (EnergyListing memory) {
-        require(_id < numberOfListings, "Energy listing does not exist.");
-        return energyListings[_id];
+    // Get donators and donations for a specific campaign
+    function getDonators(uint256 _id) 
+        public 
+        view 
+        returns (address[] memory, uint256[] memory, uint256[] memory) 
+    {
+        Campaign storage campaign = campaigns[_id];
+        return (campaign.donators, campaign.donations, campaign.timestamps);
     }
 
-    /**
-     * @dev Retrieves all energy listings created by a specific owner.
-     */
-    function getEnergyListingsByOwner(address _owner) public view returns (EnergyListing[] memory) {
-        uint256 count = 0;
-
-        for (uint256 i = 0; i < numberOfListings; i++) {
-            if (energyListings[i].owner == _owner) {
-                count++;
-            }
-        }
-
-        EnergyListing[] memory ownerListings = new EnergyListing[](count);
-        uint256 index = 0;
-
-        for (uint256 i = 0; i < numberOfListings; i++) {
-            if (energyListings[i].owner == _owner) {
-                ownerListings[index] = energyListings[i];
-                index++;
-            }
-        }
-
-        return ownerListings;
-    }
-
-    /**
-     * @dev Retrieves the purchase history for a specific energy listing.
-     */
-    function getPurchaseHistory(uint256 _id) public view returns (Purchase[] memory) {
-        require(_id < numberOfListings, "Energy listing does not exist.");
-        return purchaseHistory[_id];
-    }
-
-    /**
-     * @dev Retrieves all purchases made by a specific user across listings.
-     * @param _user Address of the user.
-     * @return An array of PurchaseDetail structs representing the user's purchases.
-     */
-    function getUserPurchases(address _user) public view returns (PurchaseDetail[] memory) {
-        return userPurchases[_user];
+    function getNumberOfCampaigns() public view returns (uint256) {
+        return numberOfCampaigns;
     }
 }

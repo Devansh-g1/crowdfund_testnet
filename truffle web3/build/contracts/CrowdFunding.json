@@ -17632,12 +17632,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0xB16BFa5B4cCc34264902D2756658E75C74B480a8",
-      "transactionHash": "0x1e2d92c622569389031d4e0beaf1b312ba154bfaca4f34e9b9bd4f30d2217c9f"
+      "address": "0xABA357560F8A9B135A35F37c2F60C75c29794F20",
+      "transactionHash": "0x2cb5d408aa20ee80012d104ad4fc599f965a00c1f8a029f7c571da8dd01ba0b4"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2024-10-17T12:02:57.756Z",
+  "updatedAt": "2024-10-20T17:37:50.066Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
