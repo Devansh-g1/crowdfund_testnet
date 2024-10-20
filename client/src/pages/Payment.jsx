@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useStateContext } from '../context';
+import { useNavigate } from 'react-router-dom'; 
 
 const Payment = () => {
+  const navigate = useNavigate();
   const { getUserDonations, address } = useStateContext();
   const [isLoading, setIsLoading] = useState(false);
   const [userDonations, setUserDonations] = useState([]);
@@ -31,7 +33,7 @@ const Payment = () => {
 
           donations.forEach(({ amount, timestamp }) => {
             acc[campaignKey].donations.push({
-              amount: parseFloat(amount)/(10**18),
+              amount: parseFloat(amount) / (10 ** 18),
               timestamp: new Date(timestamp * 1000).toLocaleString(),
             });
           });
@@ -82,9 +84,9 @@ const Payment = () => {
               {userDonations.map(({ campaignTitle, imageUrl, target, totalDonated, donations }) => (
                 <div key={campaignTitle} className="relative bg-gray-800 p-6 rounded-lg shadow-md">
                   {/* Faded background image for each campaign */}
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center opacity-20 rounded-lg" 
-                    style={{ backgroundImage: `url(${imageUrl})` }} 
+                  <div
+                    className="absolute inset-0 bg-cover bg-center opacity-20 rounded-lg"
+                    style={{ backgroundImage: `url(${imageUrl})` }}
                   />
                   <div className="relative z-10"> {/* Content above the background */}
                     <div className="flex justify-between items-center mb-4">
@@ -124,9 +126,13 @@ const Payment = () => {
           ) : (
             <div className="bg-gray-800 p-6 rounded-lg text-center">
               <p className="text-xl text-white">You haven't made any donations yet.</p>
-              <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+              <button
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
+                onClick={() => navigate('/')} // Replace '/your-desired-link' with the actual link
+              >
                 Explore Campaigns
               </button>
+
             </div>
           )}
         </div>

@@ -81,6 +81,18 @@ export const StateContextProvider = ({ children }) => {
     }
   };
 
+  const disconnectWallet = () => {
+    // Resetting the state variables to their initial values
+    setProvider(null);
+    setSigner(null);
+    setAddress(null);
+    setContract(null);
+
+    // Optionally, you can add any additional cleanup or logic here
+    alert("Wallet disconnected!");
+};
+
+
   /**
    * @dev Create a new campaign
    */
@@ -226,7 +238,8 @@ const getUserDonations = async (userAddress) => {
         donate,
         getDonations,
         getNumberOfCampaigns,
-        getUserDonations
+        getUserDonations,
+        disconnectWallet
       }}
     >
       {children}
