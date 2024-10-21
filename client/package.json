@@ -9,6 +9,8 @@
     "deploy": "yarn build && npx thirdweb@latest upload dist"
   },
   "dependencies": {
+    "@safe-global/safe-core-sdk": "^3.3.5",
+    "@safe-global/safe-ethers-adapters": "^0.1.0-alpha.19",
     "@thirdweb-dev/react": "^3.16.5",
     "@thirdweb-dev/sdk": "^3",
     "@thirdweb-dev/tsconfig": "^0.1.7",
