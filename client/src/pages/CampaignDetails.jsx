@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
+import { XCircle } from 'lucide-react';
 
 import { useStateContext } from '../context';
 import { CountBox, CustomButton, Loader } from '../components';
@@ -20,7 +21,6 @@ const CampaignDetails = () => {
 
   const fetchDonators = async () => {
     const data = await getDonations(state.pId);
-
     setDonators(data);
   }
 
@@ -46,96 +46,128 @@ const CampaignDetails = () => {
       setIsLoading(false);
     }
   };
-  
 
   return (
-    <div>
+    <div className="min-h-screen px-4">
       {isLoading && <Loader />}
 
-      <div className="w-full flex md:flex-row flex-col mt-10 gap-[30px]">
-        <div className="flex-1 flex-col">
-          <img src={state.image} alt="campaign" className="w-full h-[410px] object-cover rounded-xl"/>
-          <div className="relative w-full h-[5px] bg-[#3a3a43] mt-2">
-            <div className="absolute h-full bg-[#4acd8d]" style={{ width: `${calculateBarPercentage(state.target, state.amountCollected)}%`, maxWidth: '100%'}}>
+      <div className="container mx-auto max-w-6xl">
+        {/* Campaign Header */}
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+          {/* Campaign Image */}
+          <div className="relative">
+            <img 
+              src={state.image} 
+              alt="campaign" 
+              className="w-full h-[500px] object-cover rounded-xl shadow-lg"
+            />
+            <div className="absolute bottom-0 left-0 right-0 h-2 bg-background-700 rounded-full overflow-hidden">
+  <div 
+    className="h-full bg-gradient-to-r from-accent-400 to-accent-600 transition-all duration-500 ease-in-out" 
+    style={{ 
+      width: `${calculateBarPercentage(state.target, state.amountCollected)}%`, 
+      maxWidth: '100%'
+    }}
+  />
+</div>
+
+          </div>
+
+          {/* Campaign Metrics */}
+          <div className="bg-background-900 rounded-xl p-6 space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <CountBox title="Days Left" value={remainingDays} />
+              <CountBox title={`Raised of ${state.target}`} value={state.amountCollected} />
+              <CountBox title="Total Backers" value={donators.length} />
             </div>
-          </div>
-        </div>
 
-        <div className="flex md:w-[150px] w-full flex-wrap justify-between gap-[30px]">
-          <CountBox title="Days Left" value={remainingDays} />
-          <CountBox title={`Raised of ${state.target}`} value={state.amountCollected} />
-          <CountBox title="Total Backers" value={donators.length} />
-        </div>
-      </div>
-
-      <div className="mt-[60px] flex lg:flex-row flex-col gap-5">
-        <div className="flex-[2] flex flex-col gap-[40px]">
-          <div>
-            <h4 className="font-epilogue font-semibold text-[18px] text-white uppercase">Creator</h4>
-
-            <div className="mt-[20px] flex flex-row items-center flex-wrap gap-[14px]">
-              <div className="w-[52px] h-[52px] flex items-center justify-center rounded-full bg-[#2c2f32] cursor-pointer">
-                <img src={thirdweb} alt="user" className="w-[60%] h-[60%] object-contain"/>
-              </div>
-              <div>
-                <h4 className="font-epilogue font-semibold text-[14px] text-white break-all">{state.owner}</h4>
-                <p className="mt-[4px] font-epilogue font-normal text-[12px] text-[#808191]">10 Campaigns</p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-epilogue font-semibold text-[18px] text-white uppercase">Story</h4>
-
-              <div className="mt-[20px]">
-                <p className="font-epilogue font-normal text-[16px] text-[#808191] leading-[26px] text-justify">{state.description}</p>
-              </div>
-          </div>
-
-          <div>
-            <h4 className="font-epilogue font-semibold text-[18px] text-white uppercase">Donators</h4>
-
-              <div className="mt-[20px] flex flex-col gap-4">
-                {donators.length > 0 ? donators.map((item, index) => (
-                  <div key={`${item.donator}-${index}`} className="flex justify-between items-center gap-4">
-                    <p className="font-epilogue font-normal text-[16px] text-[#b2b3bd] leading-[26px] break-ll">{index + 1}. {item.donator}</p>
-                    <p className="font-epilogue font-normal text-[16px] text-[#808191] leading-[26px] break-ll">{item.donation}</p>
-                  </div>
-                )) : (
-                  <p className="font-epilogue font-normal text-[16px] text-[#808191] leading-[26px] text-justify">No donators yet. Be the first one!</p>
-                )}
-              </div>
-          </div>
-        </div>
-
-        <div className="flex-1">
-          <h4 className="font-epilogue font-semibold text-[18px] text-white uppercase">Fund</h4>   
-
-          <div className="mt-[20px] flex flex-col p-4 bg-[#1c1c24] rounded-[10px]">
-            <p className="font-epilogue fount-medium text-[20px] leading-[30px] text-center text-[#808191]">
-              Fund the campaign
-            </p>
-            <div className="mt-[30px]">
+            {/* Donation Section */}
+            <div className="bg-background-800 rounded-lg p-6">
+              <h4 className="text-xl font-bold text-text-200 mb-4">Fund Campaign</h4>
               <input 
                 type="number"
                 placeholder="ETH 0.1"
                 step="0.01"
-                className="w-full py-[10px] sm:px-[20px] px-[15px] outline-none border-[1px] border-[#3a3a43] bg-transparent font-epilogue text-white text-[18px] leading-[30px] placeholder:text-[#4b5264] rounded-[10px]"
+                className="w-full py-3 px-4 bg-background-700 border-2 border-background-600 text-text-100 rounded-lg focus:ring-2 focus:ring-accent-500 outline-none"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
 
-              <div className="my-[20px] p-4 bg-[#13131a] rounded-[10px]">
-                <h4 className="font-epilogue font-semibold text-[14px] leading-[22px] text-white">Back it because you believe in it.</h4>
-                <p className="mt-[20px] font-epilogue font-normal leading-[22px] text-[#808191]">Support the project for no reward, just because it speaks to you.</p>
+              <div className="mt-4 bg-background-700 rounded-lg p-4">
+                <h5 className="text-text-200 font-semibold mb-2">Support the Project</h5>
+                <p className="text-text-300 text-sm">
+                  Back it because you believe in it. Support the project for no reward, just because it speaks to you.
+                </p>
               </div>
 
               <CustomButton 
                 btnType="button"
                 title="Fund Campaign"
-                styles="w-full bg-[#8c6dfd]"
+                styles="w-full mt-4 bg-primary text-accent-900 hover:bg-primary-400"
                 handleClick={handleDonate}
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Campaign Details */}
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Left Column - Creator & Story */}
+          <div className="space-y-8">
+            {/* Story Section */}
+            <div className="bg-background-900 rounded-xl p-6">
+              <h4 className="text-xl font-bold text-text-200 uppercase mb-4">{state.title}</h4>
+              <p className="text-text-300 leading-relaxed text-justify">
+                {state.description}
+              </p>
+            </div>            
+            
+            {/* Creator Section */}
+            <div className="bg-background-900 rounded-xl p-6">
+              <h4 className="text-xl font-bold text-text-200 uppercase mb-4">Creator</h4>
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-background-800 rounded-full flex items-center justify-center">
+                  <img 
+                    src={thirdweb} 
+                    alt="user" 
+                    className="w-10 h-10 object-contain"
+                  />
+                </div>
+                <div>
+                  <h5 className="text-text-100 font-semibold">{state.owner}</h5>
+                  <p className="text-text-300 text-sm">10 Campaigns</p>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+
+          {/* Right Column - Donators */}
+          <div className="bg-background-900 rounded-xl p-6">
+            <h4 className="text-xl font-bold text-text-200 uppercase mb-4">Donators</h4>
+            <div className="space-y-4">
+              {donators.length > 0 ? (
+                donators.map((item, index) => (
+                  <div 
+                    key={`${item.donator}-${index}`} 
+                    className="flex justify-between items-center bg-background-800 p-3 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="text-text-300">{index + 1}.</span>
+                      <p className="text-text-100 truncate max-w-[200px]">
+                        {item.donator}
+                      </p>
+                    </div>
+                    <p className="text-text-200 font-semibold">{item.donation} ETH</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <XCircle className="mx-auto mb-2 text-text-300" size={48} />
+                  <p className="text-text-300">No donators yet. Be the first one!</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -144,4 +176,4 @@ const CampaignDetails = () => {
   )
 }
 
-export default CampaignDetails
+export default CampaignDetails;

@@ -1,46 +1,62 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-import { logo, sun, logout } from '../assets'; // Import your icons
+import { logo, sun, logout } from '../assets';
 import { navlinks } from '../constants';
-import { useStateContext } from '../context'; // Assuming you have a disconnect function in your context
+import { useStateContext } from '../context';
 
 const Icon = ({ styles, name, imgUrl, isActive, disabled, handleClick }) => (
   <div 
     className={`w-[48px] h-[48px] rounded-[10px] flex justify-center items-center
       ${!disabled && 'cursor-pointer'} 
-      ${isActive === name ? '' : ''} // Apply bg color only when active
-      hover:bg-[#3a3a43] transition-colors duration-200`}  // Add hover effect for all icons
+      ${isActive === name ? 'bg-background-700' : 'hover:bg-background-800'} 
+      transition-colors duration-200`}
     onClick={handleClick}
   >
     <img 
       src={imgUrl} 
       alt={name} 
-      className={`w-1/2 h-1/2 ${isActive !== name ? 'grayscale' : ''}`} // Remove grayscale when active
+      className={`w-1/2 h-1/2 ${isActive !== name ? 'opacity-60' : 'opacity-100'}`}
     />
   </div>
 )
 
-
 const Sidebar = () => {
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState('dashboard');
-  const { disconnectWallet } = useStateContext(); // Assuming you have a disconnect function in your context
+  const [theme, setTheme] = useState(
+    // Check localStorage or system preference for initial theme
+    localStorage.getItem('theme') || 
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  );
+  const { disconnectWallet } = useStateContext();
+
+  const handleThemeToggle = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    
+    // Update document root and localStorage
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Optional: Add class for Tailwind dark mode support
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   const handleLogout = () => {
-    disconnectWallet(); // Call the disconnect function
-    navigate('/'); // Navigate to the home page or login page after logout
+    disconnectWallet();
+    navigate('/');
   };
 
   return (
     <div className="flex justify-between items-center flex-col sticky top-5 h-[93vh]">
-      {/* Logo at the top */}
-      <Link to="/">
-        <Icon styles="w-[52px] h-[52px] bg-[#2c2f32]" imgUrl={logo} />
-      </Link>
+      
 
       {/* Navigation Links */}
-      <div className="flex-1 flex flex-col justify-between items-center bg-[#1c1c24] rounded-[20px] w-[76px] py-4 mt-6"> {/* Adjusted the margin-top to shift background up */}
+      <div className="flex-1 flex flex-col justify-between items-center bg-background-900 rounded-[20px] w-[76px] py-4 mt-16">
         <div className="flex flex-col justify-center items-center gap-3">
           {navlinks.map((link) => (
             <Icon 
@@ -57,21 +73,23 @@ const Sidebar = () => {
           ))}
         </div>
 
-        {/* Box containing the icons, adjusted with margin */}
-        <div className="flex flex-col justify-end items-center gap-4 flex-grow mb-6"> {/* Adjusted margin to move icons up */}
+        {/* Bottom Icons */}
+        <div className="flex flex-col justify-end items-center gap-4 flex-grow mb-6">
           {/* Logout Icon */}
           <Icon 
-            styles="bg-[#2c2f32] hover:bg-[#3a3a43] transition-colors duration-200" // Style for logout with gray bg and hover effect
-            imgUrl={logout} // Logout icon
+            styles="bg-background-700 hover:bg-background-600" 
+            imgUrl={logout} 
             name="Logout" 
-            handleClick={handleLogout} // Call the logout function
+            handleClick={handleLogout}
           />
-
-          {/* Sun Icon */}
-          <Icon 
-            styles="bg-[#2c2f32] hover:bg-[#3a3a43] transition-colors duration-200" // Same hover effect for the sun icon
+          
+          {/* Theme Toggle Icon */}
+          {/* <Icon 
+            styles="bg-background-700 hover:bg-background-600" 
             imgUrl={sun} 
-          />
+            name="Theme"
+            handleClick={handleThemeToggle}
+          /> */}
         </div>
       </div>
     </div>
