@@ -14,7 +14,7 @@ import './index.css';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
-  <ThirdwebProvider activeChain={Holesky} clientId='729de2d72dbf8b9846e389ad314a0cbd'> 
+  <ThirdwebProvider activeChain={Holesky} clientId='71c9042f13037f80b9b4894be0ca40c0'> 
   <Router>
     <StateContextProvider>
       <App />

@@ -69,87 +69,97 @@ const Payment = () => {
   };
 
   return (
-    <div className="relative container mx-auto p-4">
-      <div className="bg-[#1c1c24] rounded-lg shadow-lg max-w-4xl mx-auto relative z-0">
-        <div className="flex justify-center items-center p-[16px] sm:min-w-[380px] bg-[#8c6dfd] rounded-[10px]">
-          <h1 className="font-epilogue font-bold sm:text-[25px] text-[18px] leading-[38px] text-white">
-            Your Donations
-          </h1>
-        </div>
-        <div className="p-6">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : userDonations.length > 0 ? (
-            <div className="space-y-6">
-              {userDonations.map(({ campaignTitle, imageUrl, target, donations }) => {
-                const progress = calculateProgressPercentage(donations, target);
+    <div className="min-h-screen py-10 px-4">
+      <div className="container mx-auto max-w-4xl">
+        <div className="bg-background-900 rounded-xl shadow-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-6 text-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-text-50 tracking-wide">
+              Your Donations
+            </h1>
+          </div>
 
-                return (
-                  <div
-                    key={campaignTitle}
-                    className="relative bg-white p-6 rounded-lg shadow-md z-10 overflow-hidden"
-                  >
+          {/* Content */}
+          <div className="p-6">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent-500"></div>
+              </div>
+            ) : userDonations.length > 0 ? (
+              <div className="space-y-6">
+                {userDonations.map(({ campaignTitle, imageUrl, target, donations }) => {
+                  const progress = calculateProgressPercentage(donations, target);
+
+                  return (
                     <div
-                      className="absolute inset-0 bg-cover bg-center"
-                      style={{ backgroundImage: `url(${imageUrl})` }}
-                    />
-                    <div className="relative z-20 bg-white bg-opacity-80 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-4">
-                        <div>
-                          <h3 className="text-xl font-semibold text-gray-800">{campaignTitle}</h3>
-                          <p className="text-gray-600 mt-1">
-                            Total Donated: {totalDonationAmount(donations)} ETH
-                          </p>
-                          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                            <div
-                              className="bg-blue-500 h-2.5 rounded-full"
-                              style={{ width: `${progress}%` }}
-                            />
+                      key={campaignTitle}
+                      className="bg-background-800 rounded-lg shadow-md overflow-hidden"
+                    >
+                      <div 
+                        className="h-24 bg-cover bg-center opacity-50"
+                        style={{ backgroundImage: `url(${imageUrl})` }}
+                      />
+                      <div className="p-6 -mt-12 relative z-10">
+                        <div className="bg-background-900 rounded-lg shadow-lg p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="flex-grow">
+                              <h3 className="text-xl font-semibold text-text-50 mb-2">{campaignTitle}</h3>
+                              <p className="text-text-300 mb-3">
+                                Total Donated: {totalDonationAmount(donations)} ETH
+                              </p>
+                              <div className="w-full bg-background-700 rounded-full h-2.5 mb-3">
+                                <div
+                                  className="bg-accent-500 h-2.5 rounded-full"
+                                  style={{ width: `${progress}%` }}
+                                />
+                              </div>
+                              {progress === 100 && (
+                                <p className="text-accent-400 font-bold">Campaign Completed!</p>
+                              )}
+                            </div>
+                            <button
+                              className="ml-4 bg-primary-600 hover:bg-primary-700 text-text-50 p-2 rounded-md transition-colors"
+                              onClick={() => toggleCampaignExpansion(campaignTitle)}
+                            >
+                              {expandedCampaigns[campaignTitle] ? <ChevronUp /> : <ChevronDown />}
+                            </button>
                           </div>
-                          {progress === 100 && (
-                            <p className="text-green-600 font-bold text-lg">Completed!</p>
+
+                          {expandedCampaigns[campaignTitle] && (
+                            <div className="mt-4 space-y-2">
+                              {donations.map((donation, index) => (
+                                <div
+                                  key={index}
+                                  className="flex justify-between items-center bg-background-800 p-3 rounded-md"
+                                >
+                                  <span className="text-text-200">
+                                    {donation.amount.toFixed(3)} ETH
+                                  </span>
+                                  <span className="text-sm text-text-300">{donation.timestamp}</span>
+                                </div>
+                              ))}
+                            </div>
                           )}
                         </div>
-                        <button
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
-                          onClick={() => toggleCampaignExpansion(campaignTitle)}
-                        >
-                          {expandedCampaigns[campaignTitle] ? <ChevronUp /> : <ChevronDown />}
-                        </button>
                       </div>
-                      {expandedCampaigns[campaignTitle] && (
-                        <div className="mt-4 space-y-2">
-                          {donations.map((donation, index) => (
-                            <div
-                              key={index}
-                              className="flex justify-between items-center bg-gray-100 p-2 rounded"
-                            >
-                              <span className="text-gray-800">
-                                {donation.amount.toFixed(3)} ETH
-                              </span>
-                              <span className="text-sm text-gray-600">{donation.timestamp}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="bg-white p-6 rounded-lg text-center">
-              <p className="text-xl text-gray-800">You haven't made any donations yet.</p>
-              <button
-                className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition-colors duration-200"
-                onClick={() => navigate('/')}
-              >
-                Explore Campaigns
-              </button>
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-5 rounded-lg text-center">
+                <p className="text-xl text-text-200 mb-5">
+                  You haven't made any donations yet.
+                </p>
+                <button
+                  className="bg-accent-600 hover:bg-accent-700 text-text-50 px-6 py-3 mt-5 rounded-md transition-colors"
+                  onClick={() => navigate('/')}
+                >
+                  Explore Campaigns
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

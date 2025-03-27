@@ -7,7 +7,7 @@ const env = await import.meta.env;
 const StateContext = createContext();
 
 export const StateContextProvider = ({ children }) => {
-  const { contract } = useContract('0xa8D644EBE3C6F4B37914f73A7BFe2C7460250D75'); // Replace with your contract address
+  const { contract } = useContract('0x6525047304A92F8c6d7B50Cb40c93CD2E2f591bA'); // Replace with your contract address
   const { mutateAsync: createCampaign } = useContractWrite(contract, 'createCampaign');
 
   const address = useAddress();
